@@ -1,9 +1,10 @@
 # Change Log
+## [0.0.2] - 2024-06-13
 
-All notable changes to the "split-mui-imports" extension will be documented in this file.
+### Changed
 
-Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
+- Updated display name from split-mui-imports to Split MUI Imports
 
-## [Unreleased]
+## [0.0.1] - 2024-06-13
 
--   Initial release
+### Initial release
