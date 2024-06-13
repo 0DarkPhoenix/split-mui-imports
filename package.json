@@ -1,7 +1,8 @@
 {
     "name": "split-mui-imports",
     "displayName": "split-mui-imports",
-    "description": "",
+    "description": "An extension which splits grouped Material-UI imports",
+    "publisher": "DarkPhoenix",
     "version": "0.0.1",
     "engines": {
         "vscode": "^1.90.0"

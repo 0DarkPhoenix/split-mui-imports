@@ -2,7 +2,7 @@
 
 ## Overview
 
-The "Split MUI Imports" extension for Visual Studio Code helps you automatically split grouped Material-UI (MUI) imports into individual import statements. This can improve the readability and maintainability of your code by ensuring each MUI component is imported separately.
+The "Split MUI Imports" extension for Visual Studio Code helps you automatically split grouped Material-UI (MUI) imports into individual import statements. This improves the performance of your code by ensuring each MUI component isn't importing unnecessary files.
 
 ## Features
 
