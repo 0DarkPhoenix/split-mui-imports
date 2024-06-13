@@ -15,6 +15,10 @@
         "onWillSaveTextDocument"
     ],
     "main": "./extension.js",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/0DarkPhoenix/split-mui-imports.git"
+    },
     "contributes": {
         "commands": [
             {
