@@ -34,6 +34,11 @@
                     "type": "boolean",
                     "default": true,
                     "description": "Run the Split MUI Imports command on save"
+                },
+                "splitMUIImports.showInfoMessages": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Show information messages"
                 }
             }
         },
@@ -41,12 +46,7 @@
             {
                 "command": "extension.splitMUIImports",
                 "key": "ctrl+win+alt+s",
-                "when": "editorTextFocus && !isMac"
-            },
-            {
-                "command": "extension.splitMUIImports",
-                "key": "ctrl+cmd+alt+s",
-                "when": "editorTextFocus && isMac"
+                "when": "editorTextFocus"
             }
         ]
     },
