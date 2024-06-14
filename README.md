@@ -15,7 +15,7 @@ The "Split MUI Imports" extension for Visual Studio Code helps you automatically
 ### Manual Command
 
 1. Open the command palette (`Ctrl+Shift+P` or `Cmd+Shift+P` on Mac).
-2. Run the command `Split MUI Imports: Split Imports`.
+2. Run the command `Split MUI Imports: split MUI imports`.
 3. The extension will process the current file and split any grouped MUI imports.
 
 ### Run on Save

@@ -3,7 +3,7 @@
     "displayName": "Split MUI Imports",
     "description": "An extension which splits grouped Material-UI imports",
     "publisher": "DarkPhoenix",
-    "version": "0.0.2",
+    "version": "0.0.3",
     "engines": {
         "vscode": "^1.90.0"
     },
@@ -23,7 +23,7 @@
         "commands": [
             {
                 "command": "extension.splitMUIImports",
-                "title": "Split MUI Imports"
+                "title": "Split MUI Imports: split MUI imports"
             }
         ],
         "configuration": {

@@ -30,7 +30,7 @@ function activate(context) {
 
                 // Process each line to split grouped MUI imports
                 for (let i = 0; i < lines.length; i++) {
-                    const line = lines[i].trim();
+                    let line = lines[i].trim();
 
                     if (line.startsWith("import")) {
                         nonImportCount = 0; // Reset the counter if an import line is found
@@ -40,8 +40,8 @@ function activate(context) {
                             line.includes("}") &&
                             line.includes("@mui/")
                         ) {
-                            const importParts = line.split("from");
-                            const modulesPart = importParts[0]
+                            let importParts = line.split("from");
+                            let modulesPart = importParts[0]
                                 .replace("import", "")
                                 .replace("{", "")
                                 .replace("}", "")
@@ -50,9 +50,18 @@ function activate(context) {
                                 .trim()
                                 .replace(/['";]/g, "");
 
+                            // Handle multi-line imports
+                            while (!line.includes("}")) {
+                                i++;
+                                line = lines[i].trim();
+                                modulesPart +=
+                                    " " + line.replace("}", "").trim();
+                            }
+
                             const modules = modulesPart
                                 .split(",")
-                                .map((module) => module.trim());
+                                .map((module) => module.trim())
+                                .filter(Boolean);
 
                             modules.forEach((module) => {
                                 newLines.push(
@@ -61,6 +70,48 @@ function activate(context) {
                             });
 
                             modified = true;
+                        } else if (line.includes("{")) {
+                            // Handle multi-line imports
+                            let importLines = [line];
+                            while (
+                                !line.includes("}") &&
+                                !line.includes("from")
+                            ) {
+                                i++;
+                                line = lines[i].trim();
+                                importLines.push(line);
+                            }
+
+                            const fullImport = importLines.join(" ");
+                            if (
+                                fullImport.includes("from") &&
+                                fullImport.includes("@mui/")
+                            ) {
+                                let importParts = fullImport.split("from");
+                                let modulesPart = importParts[0]
+                                    .replace("import", "")
+                                    .replace("{", "")
+                                    .replace("}", "")
+                                    .trim();
+                                const importPath = importParts[1]
+                                    .trim()
+                                    .replace(/['";]/g, "");
+
+                                const modules = modulesPart
+                                    .split(",")
+                                    .map((module) => module.trim())
+                                    .filter(Boolean);
+
+                                modules.forEach((module) => {
+                                    newLines.push(
+                                        `import ${module} from '${importPath}/${module}';`
+                                    );
+                                });
+
+                                modified = true;
+                            } else {
+                                newLines.push(...importLines);
+                            }
                         } else {
                             newLines.push(line);
                         }
@@ -88,7 +139,11 @@ function activate(context) {
                     editor.edit((editBuilder) => {
                         editBuilder.replace(fullRange, newText);
                     });
+                } else {
+                    vscode.window.showInformationMessage("No MUI imports found to split.");
                 }
+            } else {
+                vscode.window.showInformationMessage("No active editor found. Please open a file first.");
             }
         }
     );
