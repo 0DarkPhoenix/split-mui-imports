@@ -26,7 +26,8 @@ By default, the extension will automatically split MUI imports whenever you save
 
 This extension contributes the following settings:
 
--   `splitMUIImports.runOnSave`: Enable/disable automatic import splitting on file save (default is true).
+-   `splitMUIImports.runOnSave`: Enable/disable automatic import splitting on file save (Default: `true`).
+-   `splitMUIImports.showInformationMessages`: Enable/disable information messages (Default: `false`).
 
 ## Known Issues
 

@@ -1,6 +1,10 @@
+## [0.0.4] - 2024-06-14
+### Added
+- Setting to toggle information messages on or off for the extension in VS Code. Default is off
+
 ## [0.0.3] - 2024-06-14
 ### Added
-- Added support for multiline grouped MUI imports to be detected and correctly split
+- Support for multiline grouped MUI imports to be detected and correctly split
 
 ### Changed
 - Renamed title of the split-mui-imports command to "Split MUI Imports: split MUI imports"
