@@ -6,8 +6,8 @@ The "Split MUI Imports" extension for Visual Studio Code helps you automatically
 
 ## Features
 
--   **Automatic Import Splitting**: Automatically splits grouped MUI imports into individual import statements.
--   **Run on Save**: Optionally run the import splitting automatically whenever you save a file.
+-   **Import Splitting**: Splits grouped MUI imports into individual import statements.
+-   **Run on Save**: Run the import splitting automatically whenever you save a file.
 -   **Supports Multiple File Types**: Works with JavaScript, TypeScript, JSX, and TSX files.
 
 ## Usage
