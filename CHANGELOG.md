@@ -1,3 +1,9 @@
+## [0.0.5] - 2024-06-17
+### Added	
+- Exceptions for imports with "@mui/material/styles" and "@mui/icons-material" so their modules are imported correctly
+### Fixed
+- Issue where using the shortcut didn't recognize the command
+
 ## [0.0.4] - 2024-06-14
 ### Added
 - Setting to toggle information messages on or off for the extension in VS Code. Default is off

@@ -20,7 +20,11 @@ function activate(context) {
 
     // Function to split MUI imports
     async function splitMUIImports() {
-        console.time("splitMUIImports"); // Start timing
+        const timerLabel = "splitMUIImports";
+        if (console._times && console._times[timerLabel]) {
+            console.timeEnd(timerLabel); // End any existing timer with the same label
+        }
+        console.time(timerLabel); // Start timing
 
         const editor = vscode.window.activeTextEditor;
         if (!editor) {
@@ -35,7 +39,7 @@ function activate(context) {
         const validExtensions = new Set(["js", "ts", "jsx", "tsx"]);
 
         if (!validExtensions.has(fileExtension)) {
-            console.timeEnd("splitMUIImports"); // End timing
+            console.timeEnd(timerLabel); // End timing
             return;
         }
 
@@ -67,15 +71,22 @@ function activate(context) {
                     .trim();
                 importPath = importPath.trim().replace(/['";]/g, "");
 
+                // Skip imports from @mui/material/styles
+                if (importPath === "@mui/material/styles") {
+                    return;
+                }
+
                 const modules = modulesPart
                     .split(",")
                     .map((module) => module.trim())
                     .filter(Boolean);
 
-                const newImportLines = modules.map(
-                    (module) =>
-                        `import ${module} from '${importPath}/${module}';`
-                );
+                const newImportLines = modules.map((module) => {
+                    if (importPath === "@mui/icons-material") {
+                        module = `${module}Icon`;
+                    }
+                    return `import ${module} from '${importPath}/${module}';`;
+                });
 
                 // Replace the original lines with the new import lines
                 const range = new vscode.Range(
@@ -131,7 +142,7 @@ function activate(context) {
             await document.save();
         }
 
-        console.timeEnd("splitMUIImports"); // End timing
+        console.timeEnd(timerLabel); // End timing
     }
 
     // Function to handle the will save event
@@ -167,6 +178,14 @@ function activate(context) {
             updateRunOnSave();
         }
     });
+
+    // Register the command
+    let disposable = vscode.commands.registerCommand(
+        "splitMUIImports.split",
+        splitMUIImports
+    );
+
+    context.subscriptions.push(disposable);
 }
 
 module.exports = {

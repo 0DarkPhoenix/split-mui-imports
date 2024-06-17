@@ -3,7 +3,7 @@
     "displayName": "Split MUI Imports",
     "description": "Splits grouped Material-UI imports",
     "publisher": "DarkPhoenix",
-    "version": "0.0.4",
+    "version": "0.0.5",
     "engines": {
         "vscode": "^1.90.0"
     },
@@ -25,8 +25,8 @@
     "contributes": {
         "commands": [
             {
-                "command": "extension.splitMUIImports",
-                "title": "Split MUI Imports: split MUI imports"
+                "command": "splitMUIImports.split",
+                "title": "Split MUI Imports"
             }
         ],
         "configuration": {
@@ -47,7 +47,7 @@
         },
         "keybindings": [
             {
-                "command": "extension.splitMUIImports",
+                "command": "splitMUIImports.split",
                 "key": "ctrl+win+alt+s",
                 "when": "editorTextFocus"
             }
