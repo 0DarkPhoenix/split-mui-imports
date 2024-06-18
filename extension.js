@@ -72,8 +72,15 @@ function activate(context) {
                 importPath = importPath.trim().replace(/['";]/g, "");
 
                 // Skip imports from @mui/material/styles
-                if (importPath === "@mui/material/styles") {
-                    return;
+                skipImports = [
+                    "@mui/material/styles",
+                    "@mui/material/colors",
+                    "@mui/x-date-pickers",
+                ];
+                for (const skipImport of skipImports) {
+                    if (importPath === skipImport) {
+                        return;
+                    }
                 }
 
                 const modules = modulesPart
@@ -82,10 +89,11 @@ function activate(context) {
                     .filter(Boolean);
 
                 const newImportLines = modules.map((module) => {
+                    module_import = module;
                     if (importPath === "@mui/icons-material") {
                         module = `${module}Icon`;
                     }
-                    return `import ${module} from '${importPath}/${module}';`;
+                    return `import ${module} from '${importPath}/${module_import}';`;
                 });
 
                 // Replace the original lines with the new import lines

@@ -1,3 +1,9 @@
+## [0.0.6] - 2024-06-18
+### Added
+- Added "@mui/material/colors" and "@mui/x-date-pickers" to the ignored import paths list
+### Fixed
+- Items from the "@mui/icons-material" class weren't correctly imported
+
 ## [0.0.5] - 2024-06-17
 ### Added	
 - Exceptions for imports with "@mui/material/styles" and "@mui/icons-material" so their modules are imported correctly

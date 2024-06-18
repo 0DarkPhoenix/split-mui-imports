@@ -3,7 +3,7 @@
     "displayName": "Split MUI Imports",
     "description": "Splits grouped Material-UI imports",
     "publisher": "DarkPhoenix",
-    "version": "0.0.5",
+    "version": "0.0.6",
     "engines": {
         "vscode": "^1.90.0"
     },
