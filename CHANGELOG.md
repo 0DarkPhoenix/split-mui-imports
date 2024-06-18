@@ -1,4 +1,10 @@
-## [0.0.6] - 2024-06-18
+## [0.1.0] - 2024-06-18
+### Added
+- When a module from the "@mui/icons-material" class is imported, it will change all places where the module is called to the new module ({module}Icon)
+### Changed
+- Rewritten parts of the code to reduce execution time (35ms-60ms average before, 15-25ms average after)
+
+## [0.0.7] - 2024-06-18
 ### Added
 - Added "@mui/material/colors" and "@mui/x-date-pickers" to the ignored import paths list
 ### Fixed
