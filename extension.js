@@ -40,8 +40,17 @@ function activate(context) {
 		const edit = new vscode.WorkspaceEdit();
 		let modified = false;
 		const skipImports = [
-			"@mui/material/styles",
+			"@mui/material/Button",
+			"@mui/material/Card",
 			"@mui/material/colors",
+			"@mui/material/Dialog",
+			"@mui/material/Grid",
+			"@mui/material/Input",
+			"@mui/material/List",
+			"@mui/material/Menu",
+			"@mui/material/styles",
+			"@mui/material/Table",
+			"@mui/material/Tooltip",
 			"@mui/x-date-pickers",
 		];
 

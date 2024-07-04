@@ -1,3 +1,7 @@
+## [0.1.1] - 2024-07-04
+### Fixed
+- Multiple imports were incorrectly split. For a full list of the skipped imports see the Readme file
+
 ## [0.1.0] - 2024-06-18
 ### Added
 - When a module from the "@mui/icons-material" class is imported, it will change all places where the module is called to the new module ({module}Icon)

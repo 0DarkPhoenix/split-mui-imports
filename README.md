@@ -32,3 +32,17 @@ This extension contributes the following settings:
 ## Known Issues
 
 -   The extension stops searching for import statements after encountering 20 consecutive non-import lines. Ensure your import statements are near the top of your files for best results.
+
+## Ignored MUI Import Paths
+- "@mui/material/Button"
+- "@mui/material/Card"
+- "@mui/material/colors"
+- "@mui/material/Dialog"
+- "@mui/material/Grid"
+- "@mui/material/Input"
+- "@mui/material/List"
+- "@mui/material/Menu"
+- "@mui/material/styles"
+- "@mui/material/Table"
+- "@mui/material/Tooltip"
+- "@mui/x-date-pickers"
