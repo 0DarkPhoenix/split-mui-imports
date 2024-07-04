@@ -39,7 +39,7 @@ function activate(context) {
 
 		const edit = new vscode.WorkspaceEdit();
 		let modified = false;
-		const skipImports = [
+		const skipImports = new Set([
 			"@mui/material/Button",
 			"@mui/material/Card",
 			"@mui/material/colors",
@@ -52,13 +52,12 @@ function activate(context) {
 			"@mui/material/Table",
 			"@mui/material/Tooltip",
 			"@mui/x-date-pickers",
-		];
+		]);
 
 		// Function to replace module instances in the document
 		const replaceModuleInstances = (edit, document, oldModule, newModule) => {
-			const text = document.getText();
-			const regex = new RegExp(`<${oldModule}`, "g");
-			const newText = text.replace(regex, `<${newModule}`);
+			const regex = new RegExp(`\\b${oldModule}\\b`, "g");
+			const newText = text.replace(regex, newModule);
 
 			const fullRange = new vscode.Range(
 				new vscode.Position(0, 0),
@@ -84,7 +83,7 @@ function activate(context) {
 				importPath = importPath.trim().replace(/['";]/g, "");
 
 				// Skip imports if importPath contains any part of the strings in skipImports
-				if (skipImports.some((skipImport) => importPath.includes(skipImport))) {
+				if (skipImports.has(importPath)) {
 					return;
 				}
 
@@ -114,26 +113,50 @@ function activate(context) {
 			}
 		};
 
+		const MAX_CONSECUTIVE_NON_IMPORT_LINES = 20;
+		const MAX_NON_IMPORT_LINES = 100;
+
+		let linesWithoutImport = 0;
+		let consecutiveLinesWithoutImport = 0;
+		let encounteredImport = false;
+
 		// Process each line to split grouped MUI imports
 		for (let i = 0; i < lines.length; i++) {
 			let line = lines[i].trim();
 
-			if (line.startsWith("import")) {
-				if (line.includes("{")) {
-					// Handle multi-line imports
-					const importLines = [line];
-					const startLineIndex = i;
-					while (!line.includes("}") || !line.includes("from")) {
-						i++;
-						line = lines[i].trim();
-						importLines.push(line);
+			if (!line.startsWith("import")) {
+				linesWithoutImport++;
+				if (encounteredImport) {
+					consecutiveLinesWithoutImport++;
+					if (
+						consecutiveLinesWithoutImport >= MAX_CONSECUTIVE_NON_IMPORT_LINES
+					) {
+						break;
 					}
-					const endLineIndex = i;
-					processImportLine(importLines, startLineIndex, endLineIndex);
-				} else {
-					processImportLine([line], i, i);
+				} else if (linesWithoutImport >= MAX_NON_IMPORT_LINES) {
+					break;
 				}
+				continue;
 			}
+
+			encounteredImport = true;
+			consecutiveLinesWithoutImport = 0;
+
+			if (!line.includes("{")) {
+				processImportLine([line], i, i);
+				continue;
+			}
+
+			// Handle multi-line imports
+			const importLines = [line];
+			const startLineIndex = i;
+			while (!line.includes("}") || !line.includes("from")) {
+				i++;
+				line = lines[i].trim();
+				importLines.push(line);
+			}
+			const endLineIndex = i;
+			processImportLine(importLines, startLineIndex, endLineIndex);
 		}
 
 		if (modified) {
