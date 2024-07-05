@@ -1,7 +1,7 @@
 ## [0.1.2] - 2024-07-04
 ### Added
 - Limiters to stop the extension for looking for MUI imports in 2 situations:
-    1. If it didn't encounter any import statements in the first 100 lines 
+    1. If it didn't encounter any import statements in the first 100 lines
     2. If it encounters 20 non-import lines after the last import statement
 
 ## [0.1.1] - 2024-07-04
