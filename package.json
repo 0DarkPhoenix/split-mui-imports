@@ -8,7 +8,7 @@
 		"vscode": "^1.90.0"
 	},
 	"icon": "images/logo.png",
-	"categories": ["Other"],
+	"categories": ["Formatters"],
 	"activationEvents": [
 		"onLanguage:javascript",
 		"onLanguage:typescript",
