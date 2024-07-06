@@ -4,9 +4,6 @@ const vscode = require("vscode");
  * @param {vscode.ExtensionContext} context
  */
 function activate(context) {
-	console.log(
-		'Congratulations, your extension "split-mui-imports" is now active!',
-	);
 	const config = vscode.workspace.getConfiguration("splitMUIImports");
 	let runOnSave = config.get("runOnSave", true);
 	const showInfoMessages = config.get("showInfoMessages", false);
@@ -128,9 +125,7 @@ function activate(context) {
 				linesWithoutImport++;
 				if (encounteredImport) {
 					consecutiveLinesWithoutImport++;
-					if (
-						consecutiveLinesWithoutImport >= MAX_CONSECUTIVE_NON_IMPORT_LINES
-					) {
+					if (consecutiveLinesWithoutImport >= MAX_CONSECUTIVE_NON_IMPORT_LINES) {
 						break;
 					}
 				} else if (linesWithoutImport >= MAX_NON_IMPORT_LINES) {
@@ -176,9 +171,7 @@ function activate(context) {
 	// Function to update the runOnSave setting
 	const updateRunOnSave = () => {
 		if (runOnSave) {
-			context.subscriptions.push(
-				vscode.workspace.onWillSaveTextDocument(handleWillSave),
-			);
+			context.subscriptions.push(vscode.workspace.onWillSaveTextDocument(handleWillSave));
 		} else {
 			// Dispose of the existing listener if runOnSave is disabled
 			for (const subscription of context.subscriptions) {
@@ -195,18 +188,13 @@ function activate(context) {
 	// Watch for changes to the configuration
 	vscode.workspace.onDidChangeConfiguration((event) => {
 		if (event.affectsConfiguration("splitMUIImports.runOnSave")) {
-			runOnSave = vscode.workspace
-				.getConfiguration("splitMUIImports")
-				.get("runOnSave", true);
+			runOnSave = vscode.workspace.getConfiguration("splitMUIImports").get("runOnSave", true);
 			updateRunOnSave();
 		}
 	});
 
 	// Register the command
-	const disposable = vscode.commands.registerCommand(
-		"splitMUIImports.split",
-		splitMUIImports,
-	);
+	const disposable = vscode.commands.registerCommand("splitMUIImports.split", splitMUIImports);
 
 	context.subscriptions.push(disposable);
 }
