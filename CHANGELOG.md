@@ -1,3 +1,9 @@
+## [0.1.3] - 2024-07-08
+### Changed
+- Flipped the logic of the MUI import detector. It now checks for allowed imports to split instead of checking for disallowed imports, because apparently the list of allowed imports is much smaller than the list of disallowed imports.
+### Fixed
+- An import statement of an icon would be written as {module}IconIcon instead of {module}Icon
+
 ## [0.1.2] - 2024-07-04
 ### Added
 - Limiters to stop the extension for looking for MUI imports in 2 situations:

@@ -36,25 +36,12 @@ function activate(context) {
 
 		const edit = new vscode.WorkspaceEdit();
 		let modified = false;
-		const skipImports = new Set([
-			"@mui/material/Button",
-			"@mui/material/Card",
-			"@mui/material/colors",
-			"@mui/material/Dialog",
-			"@mui/material/Grid",
-			"@mui/material/Input",
-			"@mui/material/List",
-			"@mui/material/Menu",
-			"@mui/material/styles",
-			"@mui/material/Table",
-			"@mui/material/Tooltip",
-			"@mui/x-date-pickers",
-		]);
+		const allowedImports = new Set(["@mui/icons-material", "@mui/material", "@mui/lab"]);
 
 		// Function to replace module instances in the document
 		const replaceModuleInstances = (edit, document, oldModule, newModule) => {
-			const regex = new RegExp(`\\b${oldModule}\\b`, "g");
-			const newText = text.replace(regex, newModule);
+			const regex = new RegExp(`(<)${oldModule}\\b`, "g");
+			const newText = text.replace(regex, `$1${newModule}`);
 
 			const fullRange = new vscode.Range(
 				new vscode.Position(0, 0),
@@ -79,8 +66,8 @@ function activate(context) {
 					.trim();
 				importPath = importPath.trim().replace(/['";]/g, "");
 
-				// Skip imports if importPath contains any part of the strings in skipImports
-				if (skipImports.has(importPath)) {
+				// Only process imports if importPath is in the allowedImports set
+				if (!allowedImports.has(importPath)) {
 					return;
 				}
 
@@ -96,7 +83,7 @@ function activate(context) {
 						modifiedMod = `${mod}Icon`;
 						replaceModuleInstances(edit, document, moduleImport, modifiedMod);
 					}
-					return `import ${modifiedMod == null ? mod : modifiedMod} from '${importPath}/${moduleImport}';`;
+					return `import ${modifiedMod || mod} from '${importPath}/${moduleImport}';`;
 				});
 
 				// Replace the original lines with the new import lines
@@ -160,6 +147,7 @@ function activate(context) {
 		}
 
 		const endTime = performance.now();
+		// biome-ignore lint/nursery/noConsole: <explanation>
 		console.log(`Execution time: ${endTime - startTime} ms`);
 	};
 
