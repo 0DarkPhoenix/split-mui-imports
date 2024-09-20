@@ -23,7 +23,7 @@
 	"contributes": {
 		"commands": [
 			{
-				"command": "splitMUIImports.split",
+				"command": "splitMuiImports.split",
 				"title": "Split MUI Imports"
 			}
 		],
@@ -31,12 +31,12 @@
 			"type": "object",
 			"title": "Split MUI Imports",
 			"properties": {
-				"splitMUIImports.runOnSave": {
+				"splitMuiImports.runOnSave": {
 					"type": "boolean",
 					"default": true,
 					"description": "Run the Split MUI Imports command on save"
 				},
-				"splitMUIImports.showInfoMessages": {
+				"splitMuiImports.showInfoMessages": {
 					"type": "boolean",
 					"default": false,
 					"description": "Show information messages"
@@ -45,7 +45,7 @@
 		},
 		"keybindings": [
 			{
-				"command": "splitMUIImports.split",
+				"command": "splitMuiImports.split",
 				"key": "ctrl+win+alt+s",
 				"when": "editorTextFocus"
 			}

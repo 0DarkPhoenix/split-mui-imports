@@ -1,190 +1,152 @@
 const vscode = require("vscode");
 
-/**
- * @param {vscode.ExtensionContext} context
- */
 function activate(context) {
-	const config = vscode.workspace.getConfiguration("splitMUIImports");
+	const config = vscode.workspace.getConfiguration("splitMuiImports");
 	let runOnSave = config.get("runOnSave", true);
 	const showInfoMessages = config.get("showInfoMessages", false);
 
-	// Helper function to show information messages if enabled
-	const showInfoMessage = (message) => {
+	const allowedImports = new Set(["@mui/icons-material", "@mui/material", "@mui/lab"]);
+
+	function showInfoMessage(message) {
 		if (showInfoMessages) {
 			vscode.window.showInformationMessage(message);
 		}
-	};
+	}
 
-	// Function to split MUI imports
-	const splitMUIImports = async () => {
-		const startTime = performance.now();
-
+	async function splitMuiImports() {
 		const editor = vscode.window.activeTextEditor;
 		if (!editor) {
 			showInfoMessage("No active editor found. Please open a file first.");
-			return;
+			return Promise.resolve();
 		}
 
 		const document = editor.document;
 		const fileExtension = document.fileName.split(".").pop();
 		if (!["js", "ts", "jsx", "tsx"].includes(fileExtension)) {
+			showInfoMessage("This file type is not supported for MUI import splitting.");
 			return;
 		}
 
-		const text = document.getText();
-		const lines = text.split("\n");
-
+		let text = document.getText();
 		const edit = new vscode.WorkspaceEdit();
 		let modified = false;
-		const allowedImports = new Set(["@mui/icons-material", "@mui/material", "@mui/lab"]);
 
-		// Function to replace module instances in the document
-		const replaceModuleInstances = (edit, document, oldModule, newModule) => {
-			const regex = new RegExp(`(<)${oldModule}\\b`, "g");
-			const newText = text.replace(regex, `$1${newModule}`);
-
-			const fullRange = new vscode.Range(
-				new vscode.Position(0, 0),
-				new vscode.Position(document.lineCount, 0),
-			);
-			edit.replace(document.uri, fullRange, newText);
+		// Helper function to check if a line is commented out
+		const isCommentedOut = (line) => {
+			return /^\s*\/\//.test(line) || /^\s*\/\*/.test(line) || /^\s*\*/.test(line);
 		};
 
-		// Function to process and split MUI imports
-		const processImportLine = (importLines, startLineIndex, endLineIndex) => {
-			const fullImport = importLines.join(" ");
-			if (
-				fullImport.includes("{") &&
-				fullImport.includes("}") &&
-				fullImport.includes("@mui/")
-			) {
-				let [modulesPart, importPath] = fullImport.split("from");
-				modulesPart = modulesPart
-					.replace("import", "")
-					.replace("{", "")
-					.replace("}", "")
-					.trim();
-				importPath = importPath.trim().replace(/['";]/g, "");
+		const importRegex = /import\s+{([^}]+)}\s+from\s+['"](@mui\/[^'"]+)['"];?\s*/g;
+		let match;
+		let lastIndex = 0;
+		let newText = "";
 
-				// Only process imports if importPath is in the allowedImports set
-				if (!allowedImports.has(importPath)) {
-					return;
-				}
+		while (true) {
+			match = importRegex.exec(text);
+			if (match === null) break;
+			const [fullImport, modulesString, importPath] = match;
+			if (!allowedImports.has(importPath)) {
+				newText += text.slice(lastIndex, match.index + fullImport.length);
+				lastIndex = match.index + fullImport.length;
+				continue;
+			}
 
-				const modules = modulesPart
-					.split(",")
-					.map((module) => module.trim())
-					.filter(Boolean);
+			// Check if the import line is commented out
+			const importLine = text.slice(
+				text.lastIndexOf("\n", match.index) + 1,
+				text.indexOf("\n", match.index),
+			);
+			if (isCommentedOut(importLine)) {
+				newText += text.slice(lastIndex, match.index + fullImport.length);
+				lastIndex = match.index + fullImport.length;
+				continue;
+			}
 
-				const newImportLines = modules.map((mod) => {
-					const moduleImport = mod;
-					let modifiedMod = null;
+			newText += text.slice(lastIndex, match.index);
+
+			const newImports = modulesString
+				.split(",")
+				.map((moduleRaw) => {
+					const module = moduleRaw.trim();
+					if (!module) return null;
+
+					let newModule = module;
 					if (importPath === "@mui/icons-material") {
-						modifiedMod = `${mod}Icon`;
-						replaceModuleInstances(edit, document, moduleImport, modifiedMod);
+						newModule = `${module}Icon`;
+
+						// Replace module usage in JSX, but not in comments
+						const jsxRegex = new RegExp(`<(${module})(\\s|\\/|>)`, "g");
+						text = text
+							.split("\n")
+							.map((line) => {
+								if (!isCommentedOut(line)) {
+									return line.replace(jsxRegex, `<${newModule}$2`);
+								}
+								return line;
+							})
+							.join("\n");
 					}
-					return `import ${modifiedMod || mod} from '${importPath}/${moduleImport}';`;
-				});
 
-				// Replace the original lines with the new import lines
-				const range = new vscode.Range(
-					new vscode.Position(startLineIndex, 0),
-					new vscode.Position(endLineIndex, lines[endLineIndex].length),
-				);
-				edit.replace(document.uri, range, newImportLines.join("\n"));
+					return `import ${newModule} from '${importPath}/${module}';`;
+				})
+				.filter(Boolean)
+				.join("\n");
 
+			if (newImports) {
+				newText += `${newImports}\n`;
 				modified = true;
 			}
-		};
 
-		const MAX_CONSECUTIVE_NON_IMPORT_LINES = 20;
-		const MAX_NON_IMPORT_LINES = 100;
-
-		let linesWithoutImport = 0;
-		let consecutiveLinesWithoutImport = 0;
-		let encounteredImport = false;
-
-		// Process each line to split grouped MUI imports
-		for (let i = 0; i < lines.length; i++) {
-			let line = lines[i].trim();
-
-			if (!line.startsWith("import")) {
-				linesWithoutImport++;
-				if (encounteredImport) {
-					consecutiveLinesWithoutImport++;
-					if (consecutiveLinesWithoutImport >= MAX_CONSECUTIVE_NON_IMPORT_LINES) {
-						break;
-					}
-				} else if (linesWithoutImport >= MAX_NON_IMPORT_LINES) {
-					break;
-				}
-				continue;
-			}
-
-			encounteredImport = true;
-			consecutiveLinesWithoutImport = 0;
-
-			if (!line.includes("{")) {
-				processImportLine([line], i, i);
-				continue;
-			}
-
-			// Handle multi-line imports
-			const importLines = [line];
-			const startLineIndex = i;
-			while (!line.includes("}") || !line.includes("from")) {
-				i++;
-				line = lines[i].trim();
-				importLines.push(line);
-			}
-			const endLineIndex = i;
-			processImportLine(importLines, startLineIndex, endLineIndex);
+			lastIndex = match.index + fullImport.length;
 		}
+
+		newText += text.slice(lastIndex);
 
 		if (modified) {
+			const fullRange = new vscode.Range(
+				document.positionAt(0),
+				document.positionAt(text.length),
+			);
+			edit.replace(document.uri, fullRange, newText);
+
 			await vscode.workspace.applyEdit(edit);
 			await document.save();
+			showInfoMessage("MUI imports have been split and icon usages updated successfully.");
 		}
+		return Promise.resolve();
+	}
 
-		const endTime = performance.now();
-		// biome-ignore lint/nursery/noConsole: <explanation>
-		console.log(`Execution time: ${endTime - startTime} ms`);
-	};
+	function handleWillSave(event) {
+		if (
+			event.document.languageId === "javascript" ||
+			event.document.languageId === "typescript"
+		) {
+			event.waitUntil(splitMuiImports());
+		}
+	}
 
-	// Function to handle the will save event
-	const handleWillSave = async (event) => {
-		await splitMUIImports();
-	};
-
-	// Function to update the runOnSave setting
-	const updateRunOnSave = () => {
+	function updateRunOnSave() {
+		for (const sub of context.subscriptions) {
+			sub.dispose();
+		}
 		if (runOnSave) {
 			context.subscriptions.push(vscode.workspace.onWillSaveTextDocument(handleWillSave));
-		} else {
-			// Dispose of the existing listener if runOnSave is disabled
-			for (const subscription of context.subscriptions) {
-				if (subscription.dispose) {
-					subscription.dispose();
-				}
-			}
 		}
-	};
+	}
 
-	// Initial call to updateRunOnSave
-	updateRunOnSave();
-
-	// Watch for changes to the configuration
 	vscode.workspace.onDidChangeConfiguration((event) => {
-		if (event.affectsConfiguration("splitMUIImports.runOnSave")) {
-			runOnSave = vscode.workspace.getConfiguration("splitMUIImports").get("runOnSave", true);
+		if (event.affectsConfiguration("splitMuiImports.runOnSave")) {
+			runOnSave = vscode.workspace.getConfiguration("splitMuiImports").get("runOnSave", true);
 			updateRunOnSave();
 		}
 	});
 
-	// Register the command
-	const disposable = vscode.commands.registerCommand("splitMUIImports.split", splitMUIImports);
-
+	const disposable = vscode.commands.registerCommand("splitMuiImports.split", async () => {
+		await splitMuiImports();
+	});
 	context.subscriptions.push(disposable);
+
+	updateRunOnSave();
 }
 
 module.exports = {
