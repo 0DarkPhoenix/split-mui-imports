@@ -3,7 +3,7 @@ const vscode = require("vscode");
 function activate(context) {
 	const config = vscode.workspace.getConfiguration("splitMuiImports");
 	let runOnSave = config.get("runOnSave", true);
-	const showInfoMessages = config.get("showInfoMessages", false);
+	const showInfoMessages = config.get("showInfoMessages", true);
 
 	const allowedImports = new Set(["@mui/icons-material", "@mui/material", "@mui/lab"]);
 
@@ -13,11 +13,13 @@ function activate(context) {
 		}
 	}
 
-	async function splitMuiImports() {
+	const importRegex = /import\s+{([^}]+)}\s+from\s+['"](@mui\/[^'"]+)['"];?\s*/g;
+
+	async function splitMuiImports(saveDocument = false) {
 		const editor = vscode.window.activeTextEditor;
 		if (!editor) {
 			showInfoMessage("No active editor found. Please open a file first.");
-			return Promise.resolve();
+			return;
 		}
 
 		const document = editor.document;
@@ -36,7 +38,6 @@ function activate(context) {
 			return /^\s*\/\//.test(line) || /^\s*\/\*/.test(line) || /^\s*\*/.test(line);
 		};
 
-		const importRegex = /import\s+{([^}]+)}\s+from\s+['"](@mui\/[^'"]+)['"];?\s*/g;
 		let match;
 		let lastIndex = 0;
 		let newText = "";
@@ -63,7 +64,6 @@ function activate(context) {
 			}
 
 			newText += text.slice(lastIndex, match.index);
-
 			const newImports = modulesString
 				.split(",")
 				.map((moduleRaw) => {
@@ -73,7 +73,6 @@ function activate(context) {
 					let newModule = module;
 					if (importPath === "@mui/icons-material") {
 						newModule = `${module}Icon`;
-
 						// Replace module usage in JSX, but not in comments
 						const jsxRegex = new RegExp(`<(${module})(\\s|\\/|>)`, "g");
 						text = text
@@ -86,20 +85,16 @@ function activate(context) {
 							})
 							.join("\n");
 					}
-
 					return `import ${newModule} from '${importPath}/${module}';`;
 				})
 				.filter(Boolean)
 				.join("\n");
-
 			if (newImports) {
 				newText += `${newImports}\n`;
 				modified = true;
 			}
-
 			lastIndex = match.index + fullImport.length;
 		}
-
 		newText += text.slice(lastIndex);
 
 		if (modified) {
@@ -108,12 +103,12 @@ function activate(context) {
 				document.positionAt(text.length),
 			);
 			edit.replace(document.uri, fullRange, newText);
-
 			await vscode.workspace.applyEdit(edit);
-			await document.save();
+			if (saveDocument) {
+				await document.save();
+			}
 			showInfoMessage("MUI imports have been split and icon usages updated successfully.");
 		}
-		return Promise.resolve();
 	}
 
 	function handleWillSave(event) {
@@ -121,7 +116,7 @@ function activate(context) {
 			event.document.languageId === "javascript" ||
 			event.document.languageId === "typescript"
 		) {
-			event.waitUntil(splitMuiImports());
+			event.waitUntil(splitMuiImports(true));
 		}
 	}
 
@@ -141,12 +136,10 @@ function activate(context) {
 		}
 	});
 
-	const disposable = vscode.commands.registerCommand("splitMuiImports.split", async () => {
-		await splitMuiImports();
-	});
-	context.subscriptions.push(disposable);
-
 	updateRunOnSave();
+
+	const disposable = vscode.commands.registerCommand("splitMuiImports.split", splitMuiImports);
+	context.subscriptions.push(disposable);
 }
 
 module.exports = {

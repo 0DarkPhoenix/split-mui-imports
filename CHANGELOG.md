@@ -1,3 +1,6 @@
+## [0.2.0] - 2024-09-21
+- Rewrote the extension from scratch to fix some fundamental issues and reduce the complexity of the code
+
 ## [0.1.3] - 2024-07-08
 ### Changed
 - Flipped the logic of the MUI import detector. It now checks for allowed imports to split instead of checking for disallowed imports, because apparently the list of allowed imports is much smaller than the list of disallowed imports.
