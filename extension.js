@@ -114,7 +114,9 @@ function activate(context) {
 	function handleWillSave(event) {
 		if (
 			event.document.languageId === "javascript" ||
-			event.document.languageId === "typescript"
+			event.document.languageId === "typescript" ||
+			event.document.languageId === "javascriptreact" ||
+			event.document.languageId === "typescriptreact"
 		) {
 			event.waitUntil(splitMuiImports(true));
 		}

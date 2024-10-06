@@ -1,3 +1,7 @@
+## [0.2.1] - 2024-10-06
+### Fixed
+- Run on Save action wouldn't work for JSX and TSX files
+
 ## [0.2.0] - 2024-09-21
 - Rewrote the extension from scratch to fix some fundamental issues and reduce the complexity of the code
 
