@@ -1,3 +1,8 @@
+## [0.3.0] - 2024-12-16
+### Added
+- Added excluded modules to prevent modules from being split when they are imported from an allowed import and shouldn't be split.
+- Added new allowedImports and excludedModules settings to have control over which imports and modules should be split.
+
 ## [0.2.1] - 2024-10-06
 ### Fixed
 - Run on Save action wouldn't work for JSX and TSX files

@@ -3,7 +3,7 @@
 	"displayName": "Split MUI Imports",
 	"description": "Splits grouped Material-UI imports",
 	"publisher": "DarkPhoenix",
-	"version": "0.2.1",
+	"version": "0.2.2",
 	"engines": {
 		"vscode": "^1.90.0"
 	},
@@ -40,6 +40,37 @@
 					"type": "boolean",
 					"default": false,
 					"description": "Show information messages"
+				},
+				"splitMuiImports.allowedImports": {
+					"type": "array",
+					"default": ["@mui/icons-material", "@mui/material", "@mui/lab"],
+					"description": "Imports that will be split when detected by the extension. \nThe path must be literal, meaning that it won't automatically split import strings with children when a parent is detected. \nFor example, '@mui/material/styles' imports won't be split when '@mui/material' is in the list. You must directly add '@mui/material/styles' to the list if you want that import to be split."
+				},
+				"splitMuiImports.excludedModules": {
+					"type": "array",
+					"default": [
+						"adaptV4Theme",
+						"createColorScheme",
+						"createStyles",
+						"createTheme",
+						"Experimental_CssVarsProvider",
+						"experimental_sx",
+						"experimentalStyled",
+						"getOverlayAlpha",
+						"makeStyles",
+						"responsiveFontSizes",
+						"shouldSkipGeneratingVar",
+						"styled",
+						"THEME_ID",
+						"Theme",
+						"ThemeProvider",
+						"unstable_createMuiStrictModeTheme",
+						"useTheme",
+						"useThemeProps",
+						"withStyles",
+						"withTheme"
+					],
+					"description": "Modules that will be excluded from splitting when they are imported from a path that is in the allowed imports list."
 				}
 			}
 		},
@@ -57,12 +88,12 @@
 		"test": "vscode-test"
 	},
 	"devDependencies": {
-		"@types/vscode": "^1.90.0",
-		"@types/mocha": "^10.0.6",
-		"@types/node": "18.x",
-		"eslint": "^8.57.0",
-		"typescript": "^5.4.5",
-		"@vscode/test-cli": "^0.0.9",
-		"@vscode/test-electron": "^2.4.0"
+		"@types/vscode": "1.96.0",
+		"@types/mocha": "10.0.10",
+		"@types/node": "22.10.2",
+		"eslint": "9.17.0",
+		"typescript": "5.7.2",
+		"@vscode/test-cli": "0.0.10",
+		"@vscode/test-electron": "2.4.1"
 	}
 }

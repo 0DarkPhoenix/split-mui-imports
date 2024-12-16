@@ -1,11 +1,52 @@
 const vscode = require("vscode");
 
 function activate(context) {
-	const config = vscode.workspace.getConfiguration("splitMuiImports");
+	const readConfig = () => {
+		const config = vscode.workspace.getConfiguration("splitMuiImports");
+		return config;
+	};
+
+	const readAllowedImports = (config) => {
+		const allowedImports = config.get("allowedImports", [
+			"@mui/icons-material",
+			"@mui/material",
+			"@mui/lab",
+		]);
+		return new Set(allowedImports);
+	};
+
+	const readExcludedModules = (config) => {
+		const excludedModules = config.get("excludedModules", [
+			"adaptV4Theme",
+			"createColorScheme",
+			"createStyles",
+			"createTheme",
+			"Experimental_CssVarsProvider",
+			"experimental_sx",
+			"experimentalStyled",
+			"getOverlayAlpha",
+			"makeStyles",
+			"responsiveFontSizes",
+			"shouldSkipGeneratingVar",
+			"styled",
+			"THEME_ID",
+			"Theme",
+			"ThemeProvider",
+			"unstable_createMuiStrictModeTheme",
+			"useTheme",
+			"useThemeProps",
+			"withStyles",
+			"withTheme",
+		]);
+		return new Set(excludedModules);
+	};
+
+	const config = readConfig();
 	let runOnSave = config.get("runOnSave", true);
 	const showInfoMessages = config.get("showInfoMessages", true);
 
-	const allowedImports = new Set(["@mui/icons-material", "@mui/material", "@mui/lab"]);
+	const allowedImports = readAllowedImports(config);
+	const excludedModules = readExcludedModules(config);
 
 	function showInfoMessage(message) {
 		if (showInfoMessages) {
@@ -64,16 +105,28 @@ function activate(context) {
 			}
 
 			newText += text.slice(lastIndex, match.index);
-			const newImports = modulesString
+
+			// Split modules and filter out excluded ones
+			const modules = modulesString
 				.split(",")
-				.map((moduleRaw) => {
-					const module = moduleRaw.trim();
+				.map((m) => m.trim())
+				.filter(Boolean);
+			const excludedImports = modules.filter((m) => excludedModules.has(m));
+			const includedImports = modules.filter((m) => !excludedModules.has(m));
+
+			// Handle excluded imports
+			if (excludedImports.length > 0) {
+				newText += `import { ${excludedImports.join(", ")} } from '${importPath}';\n`;
+			}
+
+			// Process remaining imports as before
+			const newImports = includedImports
+				.map((module) => {
 					if (!module) return null;
 
 					let newModule = module;
 					if (importPath === "@mui/icons-material") {
 						newModule = `${module}Icon`;
-						// Replace module usage in JSX, but not in comments
 						const jsxRegex = new RegExp(`<(${module})(\\s|\\/|>)`, "g");
 						text = text
 							.split("\n")
@@ -89,6 +142,7 @@ function activate(context) {
 				})
 				.filter(Boolean)
 				.join("\n");
+
 			if (newImports) {
 				newText += `${newImports}\n`;
 				modified = true;
@@ -112,12 +166,8 @@ function activate(context) {
 	}
 
 	function handleWillSave(event) {
-		if (
-			event.document.languageId === "javascript" ||
-			event.document.languageId === "typescript" ||
-			event.document.languageId === "javascriptreact" ||
-			event.document.languageId === "typescriptreact"
-		) {
+		const allowedLanguages = ["javascript", "typescript", "javascriptreact", "typescriptreact"];
+		if (allowedLanguages.includes(event.document.languageId)) {
 			event.waitUntil(splitMuiImports(true));
 		}
 	}
