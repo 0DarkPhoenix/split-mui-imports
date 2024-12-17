@@ -1,3 +1,7 @@
+## [0.3.1] - 2024-12-17
+### Fixed
+- Rewritten the logic for applying settings changes of the extension so they are always updated in the extension correctly
+
 ## [0.3.0] - 2024-12-16
 ### Added
 - Added excluded modules to prevent modules from being split when they are imported from an allowed import and shouldn't be split.

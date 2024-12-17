@@ -1,55 +1,64 @@
 const vscode = require("vscode");
 
 function activate(context) {
-	const readConfig = () => {
+	let configState = {
+		runOnSave: true,
+		showInfoMessages: true,
+		allowedImports: new Set(),
+		excludedModules: new Set(),
+	};
+
+	function initializeConfig() {
 		const config = vscode.workspace.getConfiguration("splitMuiImports");
-		return config;
-	};
 
-	const readAllowedImports = (config) => {
-		const allowedImports = config.get("allowedImports", [
-			"@mui/icons-material",
-			"@mui/material",
-			"@mui/lab",
-		]);
-		return new Set(allowedImports);
-	};
+		configState = {
+			runOnSave: config.get("runOnSave", true),
+			showInfoMessages: config.get("showInfoMessages", true),
+			allowedImports: new Set(
+				config.get("allowedImports", ["@mui/icons-material", "@mui/material", "@mui/lab"]),
+			),
+			excludedModules: new Set(
+				config.get("excludedModules", [
+					"adaptV4Theme",
+					"createColorScheme",
+					"createStyles",
+					"createTheme",
+					"Experimental_CssVarsProvider",
+					"experimental_sx",
+					"experimentalStyled",
+					"getOverlayAlpha",
+					"makeStyles",
+					"responsiveFontSizes",
+					"shouldSkipGeneratingVar",
+					"styled",
+					"THEME_ID",
+					"Theme",
+					"ThemeProvider",
+					"unstable_createMuiStrictModeTheme",
+					"useTheme",
+					"useThemeProps",
+					"withStyles",
+					"withTheme",
+				]),
+			),
+		};
 
-	const readExcludedModules = (config) => {
-		const excludedModules = config.get("excludedModules", [
-			"adaptV4Theme",
-			"createColorScheme",
-			"createStyles",
-			"createTheme",
-			"Experimental_CssVarsProvider",
-			"experimental_sx",
-			"experimentalStyled",
-			"getOverlayAlpha",
-			"makeStyles",
-			"responsiveFontSizes",
-			"shouldSkipGeneratingVar",
-			"styled",
-			"THEME_ID",
-			"Theme",
-			"ThemeProvider",
-			"unstable_createMuiStrictModeTheme",
-			"useTheme",
-			"useThemeProps",
-			"withStyles",
-			"withTheme",
-		]);
-		return new Set(excludedModules);
-	};
+		return configState;
+	}
 
-	const config = readConfig();
-	let runOnSave = config.get("runOnSave", true);
-	const showInfoMessages = config.get("showInfoMessages", true);
+	// Initialize the settings for this extension as a config
+	initializeConfig();
 
-	const allowedImports = readAllowedImports(config);
-	const excludedModules = readExcludedModules(config);
+	// Update config when any of the settings for this extension is changed
+	vscode.workspace.onDidChangeConfiguration((event) => {
+		if (event.affectsConfiguration("splitMuiImports")) {
+			initializeConfig();
+			updateRunOnSave();
+		}
+	});
 
 	function showInfoMessage(message) {
-		if (showInfoMessages) {
+		if (configState.showInfoMessages) {
 			vscode.window.showInformationMessage(message);
 		}
 	}
@@ -87,7 +96,7 @@ function activate(context) {
 			match = importRegex.exec(text);
 			if (match === null) break;
 			const [fullImport, modulesString, importPath] = match;
-			if (!allowedImports.has(importPath)) {
+			if (!configState.allowedImports.has(importPath)) {
 				newText += text.slice(lastIndex, match.index + fullImport.length);
 				lastIndex = match.index + fullImport.length;
 				continue;
@@ -111,8 +120,8 @@ function activate(context) {
 				.split(",")
 				.map((m) => m.trim())
 				.filter(Boolean);
-			const excludedImports = modules.filter((m) => excludedModules.has(m));
-			const includedImports = modules.filter((m) => !excludedModules.has(m));
+			const excludedImports = modules.filter((m) => configState.excludedModules.has(m));
+			const includedImports = modules.filter((m) => !configState.excludedModules.has(m));
 
 			// Handle excluded imports
 			if (excludedImports.length > 0) {
@@ -176,18 +185,11 @@ function activate(context) {
 		for (const sub of context.subscriptions) {
 			sub.dispose();
 		}
-		if (runOnSave) {
+		if (configState.runOnSave) {
 			context.subscriptions.push(vscode.workspace.onWillSaveTextDocument(handleWillSave));
 		}
 	}
-
-	vscode.workspace.onDidChangeConfiguration((event) => {
-		if (event.affectsConfiguration("splitMuiImports.runOnSave")) {
-			runOnSave = vscode.workspace.getConfiguration("splitMuiImports").get("runOnSave", true);
-			updateRunOnSave();
-		}
-	});
-
+	// Initialize the listener for runOnSave
 	updateRunOnSave();
 
 	const disposable = vscode.commands.registerCommand("splitMuiImports.split", splitMuiImports);
