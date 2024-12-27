@@ -1,3 +1,7 @@
+## [0.3.2] - 2024-12-27
+### Changed
+- Changed the default setting of showInfoMessages from true to false
+
 ## [0.3.1] - 2024-12-17
 ### Fixed
 - Rewritten the logic for applying settings changes of the extension so they are always updated in the extension correctly

@@ -3,7 +3,7 @@ const vscode = require("vscode");
 function activate(context) {
 	let configState = {
 		runOnSave: true,
-		showInfoMessages: true,
+		showInfoMessages: false,
 		allowedImports: new Set(),
 		excludedModules: new Set(),
 	};
@@ -13,7 +13,7 @@ function activate(context) {
 
 		configState = {
 			runOnSave: config.get("runOnSave", true),
-			showInfoMessages: config.get("showInfoMessages", true),
+			showInfoMessages: config.get("showInfoMessages", false),
 			allowedImports: new Set(
 				config.get("allowedImports", ["@mui/icons-material", "@mui/material", "@mui/lab"]),
 			),
